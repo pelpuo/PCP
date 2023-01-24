@@ -1,0 +1,234 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href=" {{ url_for('static', filename='css/output.css') }} ">
+  <link rel="stylesheet" href=" {{ url_for('static', filename='css/index.css') }} ">
+</head>
+<body class="bg-app-black text-white">
+
+    <!-- Sidebar -->
+    <!-- <div class="bg-app-dark h-full"> -->
+        <div class="hidden sm:flex flex-col fixed top-0 bottom-0 lg:left-0 p-2 w-[250px] overflow-y-auto bg-app-dark">
+            <!-- Title -->
+            <div class="p-4">
+                <h1 class="text-3xl font-bold">PCP</h1>
+            </div>
+
+            <!-- Menu -->
+            <div class="flex-1 pt-8 px-4">
+                <h3 class="text-xl">MENU</h3>
+
+                <!-- Menu Items -->
+                <div class="py-8">
+                    <div class="bg-app-gray p-3 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer hover:text-app-purple">
+                        <span class="text-md ml-3 text-white ">Video Feed</span>
+                    </div>
+
+                    <div class="p-3 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer hover:text-app-purple">
+                        <span class="text-md ml-3 text-white ">Settings</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-2.5 mt-3 flex items-center rounded-md px-4 duration-300 cursor-pointer hover:text-app-green text-white">
+                <span class="text-[15px] ml-3 text-gray-200">Logout</span>
+              </div>
+        </div>
+    <!-- </div> -->
+
+    <div class="sm:ml-[250px] flex flex-col ">
+        <!-- Topbar -->
+        <div class="bg-app-dark text-white px-12 py-4 w-full flex items-center justify-between">
+            <h1 class="text-white text-xl font-bold">Video Feed</h1>
+
+            <!-- User details -->
+            <div class='flex items-center'>
+                <div class='flex flex-col items-end'>
+                    <h3 class='text-md font-bold'>Jane Doe</h3>
+                    <h5 class='text-sm text-app-green'>jdoe@example.com</h5>
+                </div>
+                <div class='ml-2 rounded-lg w-10 h-10 bg-app-pink'></div>
+            </div>
+        </div>
+
+        <!-- Main -->
+        <div class="p-8 flex w-full h-full flex-1 items-center justify-center ">
+            <div id="cam-div" class="grid sm:grid-cols-6 gap-4 w-full max-w-6xl">
+                <div class="rounded-xl flex flex-col items-center col-span-4 relative bg-app-dark h-72 sm:h-auto">
+                    <hr id="roi-temp" class="border-dashed border-2 z-30 relative w-full" style="top:39%">
+                    <hr id="roi-final" class="border-2 border-app-purple z-20 relative w-full" style="top:38%">
+                    {% if data.video %}
+                    <!-- <img src=" {{ url_for('static', filename='images/cam-feed.jpg') }} " class="z-10 object-contain relative h-auto w-auto rounded-xl" alt=""> -->
+                        <img class="video-source" src="{{ url_for('stream.video_feed', video=data.video) }}" alt="video feed">
+                    {% endif %}
+                </div>
+                <div class="col-span-2 flex flex-col gap-4">
+                    <div class="bg-app-dark p-6 flex-1 rounded-xl">
+                        <h3 class="text-lg font-semibold">Info</h3>
+                        
+                            <div class="text-sm mt-6">
+                                <div class="flex items-center justify-between">
+                                    <h5 class="text-sm">Camera</h5>
+                                    <button id="scan-cameras" class="col-span-1 bg-app-purple px-6 py-2 text-xs rounded">Scan</button>
+                                </div>
+                                <form method="POST" action="/" class="flex items-center">
+                                    <select class="bg-app-gray p-3 flex-1 rounded-md my-2 text-lg" name="camera-select" id="camera-select">
+                                    </select>
+                                    <input type="submit" value="+" class="col-span-1 bg-app-gray p-4 ml-2 text-xs rounded">
+                                </form>
+
+                                <div class="flex mt-8">
+                                    <div class=" flex-1 flex-flex-col items-start">
+                                        <h2 class="text-sm font-semibold">Date</h2>
+                                        <h2 id="date" class="text-lg">19/08/2022</h2>
+                                    </div>
+                                    <div class=" flex flex-col">
+                                        <h2 class="text-sm font-semibold">Up Time</h2>
+                                        <h2 id="time" class="text-lg">00:30:24</h2>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+    
+                        <div class="bg-app-dark p-6 row-span-1 rounded-xl">
+                           <div class="flex justify-between items-end">
+                            <h3 class="text-lg font-semibold">ROI Line</h3>
+                            <h3 id="roi-text" class="text-md">39%</h3>
+                           </div>
+                            
+                                <div class="text-sm mt-4">
+                                    <h5 class="text-sm">Camera</h5>
+                                    <input class="w-full" type="range" min="0" max="100" name="" id="roi-value" value="39">
+                                </div>
+                                <div class="grid grid-cols-2 gap-4 mt-6">
+                                    <button id="reset" class="col-span-1 bg-app-gray px-6 py-2 rounded">Reset</button>
+                                    <button id="apply" class="col-span-1 bg-app-purple px-6 py-2 rounded">Apply</button>
+                                </div>
+                            </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+
+        //window.onload = () => {
+          //  try {
+            //    fetch(`/stream/ports`, {
+              //      headers: {
+                //        'Content-Type': 'application/json'
+                  //  },
+                    // method: 'GET'
+                //}).then(response => {
+                //    return response.json()
+                // }).then(data => {
+                //    const select = document.querySelector("#camera-select")
+                //    select.innerHTML = "<option value='dundun'>Choose Camera</option>"
+                //    for(let camera of data.cameras){
+                //        select.innerHTML += `<option value='${camera.port}'>Camera ${camera.port} (${camera.width}x${camera.height})</option>`
+                //    }
+                    
+                    
+                    //alert("Scan complete")
+                // })
+            // } catch (e) {
+            //    console.log(e.message)
+            //}
+        //} 
+        
+        var roi_text = document.querySelector("#roi-text")
+        var roi_value = document.querySelector("#roi-value")
+        var roi_temp = document.querySelector("#roi-temp")
+        var roi_final = document.querySelector("#roi-final")
+
+        var date = document.querySelector("#date")
+        var time = document.querySelector("#time")
+
+        var curDate = new Date()
+        date.innerHTML =  `${curDate.getDate() > 10? "":"0"}${curDate.getDate()}/${curDate.getMonth() > 10? "":"0"}${curDate.getMonth()}/${curDate.getFullYear()}`
+
+        var old_val = roi_value.value
+        console.log(old_val)
+
+        roi_final.style.top = `${100-39}%`
+        roi_temp.style.top = `${100-39}%`
+
+        roi_value.addEventListener("input",()=>{
+            roi_text.innerHTML = roi_value.value + "%"
+            roi_temp.style.top = `${100-roi_value.value}%`
+        })
+
+        document.querySelector("#apply").addEventListener("click", ()=>{
+            console.log("new roi applied")
+
+            roi_final.style.top = `${100-roi_value.value}%`
+            old_val = roi_value.value
+
+            try {
+                fetch(`/stream/roi`, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    method: 'POST',
+                    body: JSON.stringify({
+                        "roi": roi_value.value
+                    })
+                }).then(response => {
+                    return response.json()
+                }).then(data => {
+                    console.log(data)
+                })
+            } catch (e) {
+                console.log(e.message)
+            }
+
+        })
+
+        document.querySelector("#reset").addEventListener("click", ()=>{
+            roi_final.style.top = `${100-old_val}%`
+            roi_temp.style.top = `${100-old_val}%`
+            roi_text.innerHTML = old_val + "%"
+            roi_value.value = old_val
+        })
+
+
+
+        document.querySelector("#scan-cameras").addEventListener('click', (e) =>{
+            e.preventDefault()
+            try {
+                fetch(`/stream/ports`, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    method: 'GET'
+                }).then(response => {
+                    return response.json()
+                }).then(data => {
+                    const select = document.querySelector("#camera-select")
+                    select.innerHTML = "<option selected>Choose Camera</option>"
+                    for(let camera of data.cameras){
+                        select.innerHTML += `<option value='${camera.port}'>Camera ${camera.port} (${camera.width}x${camera.height})</option>`
+                    }
+                    
+                    
+                    alert("Scan complete")
+                })
+            } catch (e) {
+                console.log(e.message)
+            }
+
+        })
+
+        document.querySelector("#camera-select").addEventListener("change", ()=>{
+            alert(document.querySelector("#camera-select").value)
+            var vid = document.querySelector("#camera-select").value
+            console.log(document.querySelector("#camera-select").value)
+
+        })
+
+    </script>
+</body>
+</html>
